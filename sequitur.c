@@ -1,14 +1,16 @@
 #include<stdio.h>
 #include<time.h>
 #include<stdlib.h>
+#include<string.h>
 
-#define ARRAY_SIZE 10000
+
+#define ARRAY_SIZE 100
 #define LOW_RANGE 1
-#define HIGH_RANGE 1000
+#define HIGH_RANGE 10
+#define CHAR_LEN 26
 
 int sample[ARRAY_SIZE];
-int count_rule=0;
-int count_diagram=0;
+int count_rule;
 
 typedef struct diagram{
 int num;
@@ -56,7 +58,7 @@ count_rule++;
 int search_in_diagram(int num1,int num2)
 {
 diagram *temp=first;
-while(temp->next!=NULL)
+while(temp->next!=last && temp->next!=NULL)
 	{
 	if(temp->num==num1 && temp->next->num==num2)
 		{
@@ -83,7 +85,6 @@ if(first==NULL)
 	node->next=NULL;
 	first=node;
 	last=node;
-	count_diagram++;
 	}
 
 else
@@ -97,11 +98,35 @@ else
 			diagram *node=(diagram*)malloc(sizeof(diagram));	
 			node->num=new_num;
 			node->next=NULL;
+			last->next=node;
 			last=node;
 			}
 		}
 	}
 }
+
+char *getrule(int num)
+{
+int rulenum=num-HIGH_RANGE;
+int len=rulenum/CHAR_LEN;
+char *rules=malloc(sizeof(char)*(len +2));
+char *ret_rule=malloc(sizeof(char)*(len +2));
+int i=0,j;
+while(rulenum>0)
+	{
+	rules[i]=(rulenum%CHAR_LEN) -1 + 'A';
+	rulenum=rulenum/CHAR_LEN;
+	i++;
+	}
+rules[i]='\0';
+
+for(j=0;j<i;j++)
+	ret_rule[j]=rules[i-j-1];
+	
+return(ret_rule);
+
+}
+
 
 int main()
 {
@@ -109,25 +134,51 @@ int i;
 srand(time(NULL));
 first=NULL;
 last=NULL;
+count_rule=0;
 for(i=0;i<ARRAY_SIZE;i++)
 	sample[i] = rand()%HIGH_RANGE + LOW_RANGE;
+/*sample[0]=10;
+sample[1]=20;
+sample[2]=30;
+sample[3]=10;
+sample[4]=20;
+sample[5]=40;	
+*/
+for(i=0;i<ARRAY_SIZE;i++)
+	sequitur(sample[i]);
 	
 for(i=0;i<ARRAY_SIZE;i++)
-	{
-	sequitur(sample[i]);
-	}
+	printf("%d ",sample[i]);
+
+printf("\n\n");
 
 diagram *x=first;
 while(x!=NULL)
 	{
-	printf("%d ",x->num);
+	if(x->num <= HIGH_RANGE)	
+		printf("%d ",x->num);
+
+	else
+		printf("%s ",getrule(x->num));
 	x=x->next;
 	}
-printf("\n");
+
+printf("\n\n");
 
 for(i=0;i<count_rule;i++)
 	{
-	printf("%d %d\n",rule_list[i]->num,rule_list[i]->next->num);
+	if(rule_list[i]->num <= HIGH_RANGE && rule_list[i]->next->num <=HIGH_RANGE)
+		printf("%s: %d %d\n",getrule(i+1+HIGH_RANGE),rule_list[i]->num,rule_list[i]->next->num);
+	
+	else if(rule_list[i]->num <= HIGH_RANGE && rule_list[i]->next->num >HIGH_RANGE)
+		printf("%s: %d %s\n",getrule(i+1+HIGH_RANGE),rule_list[i]->num,getrule(rule_list[i]->next->num));
+	
+	else if(rule_list[i]->num > HIGH_RANGE && rule_list[i]->next->num <= HIGH_RANGE)
+                printf("%s: %s %d\n",getrule(i+1+HIGH_RANGE),getrule(rule_list[i]->num),rule_list[i]->next->num);
+
+	else if(rule_list[i]->num > HIGH_RANGE && rule_list[i]->next->num >HIGH_RANGE)
+                printf("%s: %s %s\n",getrule(i+1+HIGH_RANGE),getrule(rule_list[i]->num),getrule(rule_list[i]->next->num));
+
 	}
 return 0;
 }
